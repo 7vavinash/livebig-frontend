@@ -1,24 +1,40 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
+import axios from 'axios';
+import Homepage from './components/Home';
+import Login from './components/Login';
+import Signup from './components/Signup';
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await axios.get('/api/current_user/', {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          });
+          setLoggedIn(true);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+    checkLoggedIn();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={loggedIn ? <Homepage /> : <Navigate to="/login" />} />
+        <Route path="/login" element={loggedIn ? <Navigate to="/" /> : <Login setLoggedIn={setLoggedIn} />} />
+        <Route path="/signup" element={loggedIn ? <Navigate to="/" /> : <Signup />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
